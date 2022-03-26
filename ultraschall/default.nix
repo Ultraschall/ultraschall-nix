@@ -1,9 +1,7 @@
-{ config
-, pkgs
+{ pkgs
 , lib
 , stdenv
 , fetchurl
-, fetchFromGitHub
 , autoPatchelfHook
 , makeWrapper
 , alsa-lib
@@ -13,25 +11,16 @@
 , vlc
 , xdg-utils
 , which
-, jackSupport ? true
-, libjack2
 , openssl
-, pulseaudioSupport ? config.pulseaudio or true
-, libpulseaudio
 }:
-let
+stdenv.mkDerivation rec {
   pname = "ultraschall";
-  version = "R5.1.0_14_202201011512";
-  reaperVersion = "6.27";
+  version = "R5.1.0_16_202202202016";
+  reaperPackage = pkgs.callPackage ./../reaper-for-ultraschall { };
 
-  reaper = fetchurl {
-    url = "https://www.reaper.fm/files/${lib.versions.major reaperVersion}.x/reaper${builtins.replaceStrings ["."] [""] reaperVersion}_linux_x86_64.tar.xz";
-    sha256 = "sha256:1f0x94jnl02kz2q9dzmf4vnn86as949qhmliq612nmaqaqmxjcgb";
-  };
-
-  ultraschall = fetchurl {
-    url = "https://github.com/Ultraschall/ultraschall-installer/releases/download/R5.1.0_14_202201011512/ULTRASCHALL_R5.1.0-preview.tar.gz";
-    sha256 = "sha256:0n9wj91zx0awb2f28r7dbzlcarwxymayy5nk4mhp3gb0paaikyba";
+  src = fetchurl {
+    url = "https://github.com/Ultraschall/ultraschall-installer/releases/download/${version}/ULTRASCHALL_R5.1.0-preview.tar.gz";
+    sha256 = "sha256-avkZlbpgvXFhJdMW71X1nWfF6F/tZCScWFyB/kOSPFk=";
   };
 
   ultraschallExecutable = ''
@@ -70,14 +59,8 @@ let
     fi
 
     export LD_LIBRARY_PATH="${lib.makeLibraryPath [ lame ffmpeg vlc ]}"''${LD_LIBRARY_PATH:+':'}$LD_LIBRARY_PATH
-    exec -a "$0" "$(${pkgs.coreutils}/bin/dirname $0)/../opt/REAPER/reaper" "$@"
+    exec -a "$0" "${reaperPackage}/opt/REAPER/reaper" "$@"
   '';
-in
-stdenv.mkDerivation rec {
-  inherit pname version reaperVersion;
-
-  srcs = [ reaper ultraschall ];
-  sourceRoot = ".";
 
   nativeBuildInputs = [
     autoPatchelfHook
@@ -88,16 +71,16 @@ stdenv.mkDerivation rec {
 
   buildInputs = [
     alsa-lib
-    stdenv.cc.cc.lib # reaper and libSwell need libstdc++.so.6
+    stdenv.cc.cc.lib
     gtk3
     openssl
   ];
 
   runtimeDependencies = [
-    gtk3 # libSwell needs libgdk-3.so.0
-  ]
-  ++ lib.optional jackSupport libjack2
-  ++ lib.optional pulseaudioSupport libpulseaudio;
+    gtk3
+  ];
+  #++ lib.optional jackSupport libjack2
+  #++ lib.optional pulseaudioSupport libpulseaudio;
 
   dontBuild = true;
 
@@ -105,21 +88,15 @@ stdenv.mkDerivation rec {
     runHook preInstall
 
     # copy ultraschall installer
-    mkdir -p $out/ultraschall-installer
-    cp -r R5.1.0-preview/* $out/ultraschall-installer
-
-    # Install reaper
-    cd ./reaper_linux_x86_64
-    HOME="$out/share" XDG_DATA_HOME="$out/share" ./install-reaper.sh \
-      --install $out/opt \
-      --integrate-user-desktop
-    rm $out/opt/REAPER/uninstall-reaper.sh
+    mkdir -p $out
+    cp -r * $out
 
     # create ultraschall wrapper script:
+    mkdir -p $out/opt/REAPER
     echo '${ultraschallExecutable}' > $out/opt/REAPER/ultraschall   
     chmod +x $out/opt/REAPER/ultraschall
 
-    mkdir $out/bin
+    mkdir -p $out/bin
     ln -s $out/opt/REAPER/ultraschall $out/bin/
     ln -s $out/opt/REAPER/reamote-server $out/bin/
 
@@ -127,9 +104,9 @@ stdenv.mkDerivation rec {
   '';
 
   meta = with lib; {
-    description = "Reaper DAW (https://www.reaper.fm) with Ultraschall extension for Podcastng";
+    description = "Ultraschall is a extension of the reaper DAW for podcasting";
     homepage = "https://www.ultraschall.fm/";
-    license = licenses.unfree;
+    license = licenses.mit;
     platforms = [ "x86_64-linux" ];
     maintainers = with maintainers; [ fernsehmuell ];
   };
