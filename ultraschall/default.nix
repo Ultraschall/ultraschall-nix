@@ -1,22 +1,30 @@
-{ pkgs
-, lib
-, stdenv
-, fetchurl
+{ alsa-lib
 , autoPatchelfHook
-, makeWrapper
-, alsa-lib
+, bash
+, config
+, coreutils
+, fetchurl
+, ffmpeg
+, gnutar
 , gtk3
 , lame
-, ffmpeg
-, vlc
-, xdg-utils
-, which
+, lib
+, makeWrapper
 , openssl
+, stdenv
+, vlc
+, which
+, xdg-utils
+, callPackage
+, jackSupport ? true
+, libjack2
+, pulseaudioSupport ? config.pulseaudio or true
+, libpulseaudio
 }:
 stdenv.mkDerivation rec {
   pname = "ultraschall";
   version = "R5.1.0_16_202202202016";
-  reaperPackage = pkgs.callPackage ./../reaper-for-ultraschall { };
+  reaperPackage = callPackage ./../reaper-for-ultraschall { }; #TODO: change that for nixpkgs
 
   src = fetchurl {
     url = "https://github.com/Ultraschall/ultraschall-installer/releases/download/${version}/ULTRASCHALL_R5.1.0-preview.tar.gz";
@@ -24,36 +32,34 @@ stdenv.mkDerivation rec {
   };
 
   ultraschallExecutable = ''
-    #! ${pkgs.bash}/bin/bash -e
+    #! ${bash}/bin/bash -e
     
-    mkdir -p $HOME/.config/ULTRASCHALL
-    export HOME=$HOME/.config/ULTRASCHALL
+    CONFIGDIR=$HOME/.ultrsc/REAPER
     
     # check if this script ran before:
-    if [ -f "$HOME/.config/REAPER/ultraschallInitScriptRunBefore" ]; then
-      echo ultraschall was setup before, just starting reaper
+    if [ -f "$CONFIGDIR/ultraschallInitScriptRunBefore" ]; then
+      echo "Ultraschall was setup before, starting reaper."
     else
-      echo first time ultraschall starts, seting up ultraschall for you now
-      cd $(${pkgs.coreutils}/bin/dirname $0)/../ultraschall-installer
-      mkdir -p "$HOME/.config/REAPER"
-      mkdir -p "$HOME/.config/REAPER/UserPlugins"
-      mkdir -p "$HOME/.config/REAPER/Scripts"
+      echo "Ultraschall first time setup."
+      cd "$(${coreutils}/bin/dirname $0)/.."
+      mkdir -p "$CONFIGDIR"
+      mkdir -p "$CONFIGDIR/UserPlugins"
+      mkdir -p "$CONFIGDIR/Scripts"
       mkdir -p "$HOME/.vst3"
       mkdir -p "$HOME/.lv2"
 
-      # todo: check if maybe we need to copy from reaper first, then overwrite
-      tar xf ./themes/ultraschall-theme.tar -C "$HOME/.config/REAPER"
+      ${gnutar}/bin/tar xf ./themes/ultraschall-theme.tar -C "$CONFIGDIR"
       
-      cp -fr ./plugins/* "$HOME/.config/REAPER/UserPlugins"
-      cp -fr ./scripts/* "$HOME/.config/REAPER/Scripts"
+      cp -fr ./plugins/* "$CONFIGDIR/UserPlugins"
+      cp -fr ./scripts/* "$CONFIGDIR/Scripts"
       rm -rf "$HOME/.vst3/{studio-link-plugin.vst,Soundboard.vst3}"
       rm -rf "$HOME/.lv2/studio-link-onair.lv2"
-      cp -fr ./custom-plugins/{studio-link-plugin.vst,Soundboard.vst3} "$HOME/.vst3"
-      cp -fr ./custom-plugins/studio-link-onair.lv2 "$HOME/.lv2"
+      cp -fr "./custom-plugins/{studio-link-plugin.vst,Soundboard.vst3}" "$HOME/.vst3"
+      cp -fr "./custom-plugins/studio-link-onair.lv2" "$HOME/.lv2"
 
-      touch $HOME/.config/REAPER/ultraschallInitScriptRunBefore
+      ${coreutils}/bin/touch "$CONFIGDIR/ultraschallInitScriptRunBefore"
 
-      chmod -R +w "$HOME/.config/REAPER"
+      chmod -R +w "$CONFIGDIR"
       chmod -R +w "$HOME/.lv2"
       chmod -R +w "$HOME/.vst3"
     fi
@@ -78,9 +84,9 @@ stdenv.mkDerivation rec {
 
   runtimeDependencies = [
     gtk3
-  ];
-  #++ lib.optional jackSupport libjack2
-  #++ lib.optional pulseaudioSupport libpulseaudio;
+  ]
+  ++ lib.optional jackSupport libjack2
+  ++ lib.optional pulseaudioSupport libpulseaudio;
 
   dontBuild = true;
 
