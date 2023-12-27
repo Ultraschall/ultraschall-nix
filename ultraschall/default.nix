@@ -12,15 +12,16 @@
 , xdg-utils
 , which
 , openssl
+, curl
 }:
 stdenv.mkDerivation rec {
   pname = "ultraschall";
-  version = "R5.1.0_16_202202202016";
+  version = "R5.1.0_23_202311072335";
   reaperPackage = pkgs.callPackage ./../reaper-for-ultraschall { };
 
   src = fetchurl {
     url = "https://github.com/Ultraschall/ultraschall-installer/releases/download/${version}/ULTRASCHALL_R5.1.0-preview.tar.gz";
-    sha256 = "sha256-avkZlbpgvXFhJdMW71X1nWfF6F/tZCScWFyB/kOSPFk=";
+    sha256 = "sha256-1QQdjlnFM1P8g1eyrDT5iiwf9iNVbRcuXQh14P4Im/Q=";
   };
 
   ultraschallExecutable = ''
@@ -34,7 +35,7 @@ stdenv.mkDerivation rec {
       echo ultraschall was setup before, just starting reaper
     else
       echo first time ultraschall starts, seting up ultraschall for you now
-      cd $(${pkgs.coreutils}/bin/dirname $0)/../ultraschall-installer
+      cd "$(${pkgs.coreutils}/bin/dirname $0)/.."
       mkdir -p "$HOME/.config/REAPER"
       mkdir -p "$HOME/.config/REAPER/UserPlugins"
       mkdir -p "$HOME/.config/REAPER/Scripts"
@@ -74,6 +75,7 @@ stdenv.mkDerivation rec {
     stdenv.cc.cc.lib
     gtk3
     openssl
+    curl
   ];
 
   runtimeDependencies = [
