@@ -28,39 +28,56 @@ stdenv.mkDerivation rec {
     #! ${pkgs.bash}/bin/bash -e
     
     mkdir -p $HOME/.config/ULTRASCHALL
-    export HOME=$HOME/.config/ULTRASCHALL
+    #export HOME=$HOME/.config/ULTRASCHALL
     
     # check if this script ran before:
-    if [ -f "$HOME/.config/REAPER/ultraschallInitScriptRunBefore" ]; then
+    if [ -f "$HOME/.config/ULTRASCHALL/ultraschallInitScriptRunBefore" ]; then
       echo ultraschall was setup before, just starting reaper
     else
       echo first time ultraschall starts, seting up ultraschall for you now
       cd "$(${pkgs.coreutils}/bin/dirname $0)/.."
-      mkdir -p "$HOME/.config/REAPER"
-      mkdir -p "$HOME/.config/REAPER/UserPlugins"
-      mkdir -p "$HOME/.config/REAPER/Scripts"
+      echo "****************************"
+      echo "****************************"
+      echo "****************************"
+      echo "****************************"
+      echo "****************************"
+      echo "****************************"
+
+      ls -lah
+
+      echo "****************************"
+      echo "****************************"
+      echo "****************************"
+      echo "****************************"
+      echo "****************************"
+      echo "****************************"
+      
+      mkdir -p "$HOME/.config/ULTRASCHALL"
+      mkdir -p "$HOME/.config/ULTRASCHALL/UserPlugins"
+      mkdir -p "$HOME/.config/ULTRASCHALL/Scripts"
       mkdir -p "$HOME/.vst3"
       mkdir -p "$HOME/.lv2"
 
       # todo: check if maybe we need to copy from reaper first, then overwrite
-      tar xf ./themes/ultraschall-theme.tar -C "$HOME/.config/REAPER"
+      tar xf ./themes/ultraschall-theme.tar -C "$HOME/.config/ULTRASCHALL"
       
-      cp -fr ./plugins/* "$HOME/.config/REAPER/UserPlugins"
-      cp -fr ./scripts/* "$HOME/.config/REAPER/Scripts"
+      cp -fr ./plugins/* "$HOME/.config/ULTRASCHALL/UserPlugins"
+      cp -fr ./scripts/* "$HOME/.config/ULTRASCHALL/Scripts"
       rm -rf "$HOME/.vst3/{studio-link-plugin.vst,Soundboard.vst3}"
       rm -rf "$HOME/.lv2/studio-link-onair.lv2"
       cp -fr ./custom-plugins/{studio-link-plugin.vst,Soundboard.vst3} "$HOME/.vst3"
       cp -fr ./custom-plugins/studio-link-onair.lv2 "$HOME/.lv2"
 
-      touch $HOME/.config/REAPER/ultraschallInitScriptRunBefore
+      touch $HOME/.config/ULTRASCHALL/ultraschallInitScriptRunBefore
 
-      chmod -R +w "$HOME/.config/REAPER"
+      chmod -R +w "$HOME/.config/ULTRASCHALL"
       chmod -R +w "$HOME/.lv2"
       chmod -R +w "$HOME/.vst3"
     fi
 
     export LD_LIBRARY_PATH="${lib.makeLibraryPath [ lame ffmpeg vlc ]}"''${LD_LIBRARY_PATH:+':'}$LD_LIBRARY_PATH
-    exec -a "$0" "${reaperPackage}/opt/REAPER/reaper" "$@"
+    echo "doller at= $@"
+    exec -a "$0" "${reaperPackage}/opt/REAPER/reaper" -cfgfile "$HOME/.config/ULTRASCHALL/file.ini" "$@"
   '';
 
   nativeBuildInputs = [
