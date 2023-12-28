@@ -36,22 +36,7 @@ stdenv.mkDerivation rec {
     else
       echo first time ultraschall starts, seting up ultraschall for you now
       cd "$(${pkgs.coreutils}/bin/dirname $0)/.."
-      echo "****************************"
-      echo "****************************"
-      echo "****************************"
-      echo "****************************"
-      echo "****************************"
-      echo "****************************"
-
-      ls -lah
-
-      echo "****************************"
-      echo "****************************"
-      echo "****************************"
-      echo "****************************"
-      echo "****************************"
-      echo "****************************"
-      
+     
       mkdir -p "$HOME/.config/ULTRASCHALL"
       mkdir -p "$HOME/.config/ULTRASCHALL/UserPlugins"
       mkdir -p "$HOME/.config/ULTRASCHALL/Scripts"
@@ -77,7 +62,7 @@ stdenv.mkDerivation rec {
 
     export LD_LIBRARY_PATH="${lib.makeLibraryPath [ lame ffmpeg vlc ]}"''${LD_LIBRARY_PATH:+':'}$LD_LIBRARY_PATH
     echo "doller at= $@"
-    exec -a "$0" "${reaperPackage}/opt/REAPER/reaper" -cfgfile "$HOME/.config/ULTRASCHALL/file.ini" "$@"
+    exec -a "$0" "${reaperPackage}/opt/REAPER/reaper" -cfgfile "$HOME/.config/ULTRASCHALL/reaper.ini" "$@"
   '';
 
   nativeBuildInputs = [

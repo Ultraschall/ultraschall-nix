@@ -17,6 +17,7 @@
 , libjack2
 , pulseaudioSupport ? config.pulseaudio or true
 , libpulseaudio
+, glibc
 }:
 
 stdenv.mkDerivation rec {
@@ -43,6 +44,7 @@ stdenv.mkDerivation rec {
 
   runtimeDependencies = [
     gtk3 # libSwell needs libgdk-3.so.0
+    glibc
   ]
   ++ lib.optional jackSupport libjack2
   ++ lib.optional pulseaudioSupport libpulseaudio;
