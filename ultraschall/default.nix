@@ -10,7 +10,6 @@
   libjack2,
   libxml2,
   makeWrapper,
-  openssl_1_1, # for studiolink on air plugin FIXME: remove if Sebastian ships an update
   openssl,
   pkgs,
   reaper,
@@ -25,11 +24,11 @@
 }:
 stdenv.mkDerivation rec {
   pname = "ultraschall";
-  version = "R5.1.0_35_202401141620";
+  version = "R5.1.0_46_202401220750";
 
   src = fetchurl {
     url = "https://github.com/Ultraschall/ultraschall-installer/releases/download/${version}/ULTRASCHALL_R5.1.0-preview.tar.gz";
-    sha256 = "sha256-hRW7i6li9XuRA12y7N/PvLl3Ty4SxxMf+DP8Ej4W0Y0=";
+    sha256 = "sha256-x8YL5voqQ95LjRlVEWdyg9niCP63frpMATlbSdu4ka8=";
   };
 
   # TODO: make some kind of backup of changed files (rename or move to backup folder)
@@ -73,15 +72,13 @@ stdenv.mkDerivation rec {
     stdenv.cc.cc.lib
     gtk3
     openssl
-    openssl_1_1
     curl
   ];
 
   runtimeDependencies = [
     gtk3
-    openssl_1_1
-    #libjack2
-    #pulseaudio
+    libjack2
+    pulseaudio
     reaper
   ];
 
