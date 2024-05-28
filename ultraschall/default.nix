@@ -24,15 +24,25 @@
 }:
 stdenv.mkDerivation rec {
   pname = "ultraschall";
-  version = "R5.1.0_46_202401220750";
+  version = "R5.1.0_107_202405111120";
 
   src = fetchurl {
     url = "https://github.com/Ultraschall/ultraschall-installer/releases/download/${version}/ULTRASCHALL_R5.1.0-preview.tar.gz";
-    sha256 = "sha256-x8YL5voqQ95LjRlVEWdyg9niCP63frpMATlbSdu4ka8=";
+    hash = "sha256-BCtBco93kW8aSdTzVn+GKv72OobL2wFtCbzEcLqTCf4=";
   };
 
   # TODO: make some kind of backup of changed files (rename or move to backup folder)
-  ultraschallExecutable = ''
+  ultraschallExecutable = let
+    # Ultraschall demands Version 6.82, so we pin the version.
+    reaperPackage = pkgs.reaper.overrideAttrs (_: {
+      #pname = "reaper";
+      version = "6.82";
+      src = fetchurl {
+        url = "https://www.reaper.fm/files/6.x/reaper682_linux_x86_64.tar.xz";
+        hash ="sha256-2vtkOodMj0JGLQQn4a+XHxodHQqpnSW1ea7v6aC9sHo=";
+      };
+    });
+  in ''
     # check if this script ran before for this ultraschall package:
     if [ -f "$HOME/.config/ULTRASCHALL/installedversion" ] && [[ "$(< "$HOME/.config/ULTRASCHALL/installedversion")" == "${version}" ]] ; then
       echo "starting ultraschall"
@@ -57,7 +67,7 @@ stdenv.mkDerivation rec {
     fi
 
     export LD_LIBRARY_PATH="${lib.makeLibraryPath [curl lame libxml2 ffmpeg vlc xdotool stdenv.cc.cc.lib]}"''${LD_LIBRARY_PATH:+':'}$LD_LIBRARY_PATH
-    exec -a "$0" "${pkgs.reaper}/opt/REAPER/reaper" -cfgfile "$HOME/.config/ULTRASCHALL/reaper.ini" "$@"
+    exec -a "$0" "${reaperPackage}/opt/REAPER/reaper" -cfgfile "$HOME/.config/ULTRASCHALL/reaper.ini" "$@"
   '';
 
   nativeBuildInputs = [
