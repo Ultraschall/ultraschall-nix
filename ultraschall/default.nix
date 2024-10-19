@@ -24,22 +24,21 @@
 }:
 stdenv.mkDerivation rec {
   pname = "ultraschall";
-  version = "R5.1.0_107_202405111120";
+  version = "V5.1_6_202410180942";
 
   src = fetchurl {
-    url = "https://github.com/Ultraschall/ultraschall-installer/releases/download/${version}/ULTRASCHALL_R5.1.0-preview.tar.gz";
-    hash = "sha256-BCtBco93kW8aSdTzVn+GKv72OobL2wFtCbzEcLqTCf4=";
+    url = "https://github.com/Ultraschall/ultraschall-installer/releases/download/${version}/Ultraschall-5.1.tar.gz";
+    hash = "sha256-LHSksmpsKd+X0kJdDCWX8TD7vt9QApwdTi+aIyVaNJs=";
   };
 
   # TODO: make some kind of backup of changed files (rename or move to backup folder)
   ultraschallExecutable = let
-    # Ultraschall demands Version 6.82, so we pin the version.
+    # Ultraschall demands the latest 6.x version
     reaperPackage = pkgs.reaper.overrideAttrs (_: {
-      #pname = "reaper";
-      version = "6.82";
+      version = "6.83";
       src = fetchurl {
-        url = "https://www.reaper.fm/files/6.x/reaper682_linux_x86_64.tar.xz";
-        hash ="sha256-2vtkOodMj0JGLQQn4a+XHxodHQqpnSW1ea7v6aC9sHo=";
+        url = "https://www.reaper.fm/files/6.x/reaper683_linux_x86_64.tar.xz";
+        hash ="sha256-iioHvcb1x+1P5ggEDnwyvFS6bBZIxSHJURxedeCXOQg=";
       };
     });
   in ''
@@ -73,7 +72,7 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = [
     autoPatchelfHook
     makeWrapper
-    xdg-utils # Required for desktop integration
+    xdg-utils
     which
   ];
 
