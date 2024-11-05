@@ -1,28 +1,27 @@
 {
   alsa-lib,
   autoPatchelfHook,
+  bash,
+  copyDesktopItems,
   curl,
   fetchurl,
   ffmpeg,
+  gnutar,
   gtk3,
   lame,
   lib,
   libjack2,
   libxml2,
+  makeDesktopItem,
   makeWrapper,
   openssl,
-  pkgs,
-  reaper,
   pulseaudio,
+  reaper,
   stdenv,
   vlc,
   which,
   xdg-utils,
   xdotool,
-  gnutar,
-  gnused,
-  copyDesktopItems,
-  makeDesktopItem,
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "ultraschall";
@@ -44,7 +43,7 @@ stdenv.mkDerivation (finalAttrs: {
   runtimeDependencies = [gtk3 libjack2 pulseaudio reaper];
 
   buildPhase = let
-    reaperPackage = pkgs.reaper.overrideAttrs (_: {
+    reaperPackage = reaper.overrideAttrs (_: {
       version = "6.83"; # Ultraschall demands the latest 6.x version
       src = fetchurl {
         url = "https://www.reaper.fm/files/6.x/reaper683_linux_x86_64.tar.xz";
@@ -61,14 +60,15 @@ stdenv.mkDerivation (finalAttrs: {
     cp "${icon}" ultraschall.png
 
     cat <<'EOF' > ultraschall
-      #! ${pkgs.bash}/bin/bash -e
+      #! ${lib.getExe bash}
+      set euo pipefail
       DIR=${builtins.placeholder "out"}
 
       # check if this script ran before for this ultraschall package:
       if [ -f "$HOME/.config/ULTRASCHALL/installedversion" ] && [[ "$(< "$HOME/.config/ULTRASCHALL/installedversion")" == "${finalAttrs.version}" ]] ; then
-        echo "starting ultraschall"
+        echo "Starting Ultraschall."
       else
-        echo "setting up ultraschall for the first time"
+        echo "Setting up Ultraschall for the first time. Installing everything to ~/.config/ULTRASCHALL."
         mkdir -p "$HOME"/.config/ULTRASCHALL/{UserPlugins,Scripts}
         mkdir -p "$HOME"/{.vst3,.lv2}
         cp -fr "$DIR/themes/"/* "$HOME/.config/ULTRASCHALL"
@@ -94,11 +94,10 @@ stdenv.mkDerivation (finalAttrs: {
 
     mkdir -p "$out/bin"
     mkdir -p "$out/share/icons/hicolor/512x512/apps"
-    
     mv ultraschall.png "$out/share/icons/hicolor/512x512/apps/ultraschall.png"
     mv ultraschall "$out/bin/ultraschall" && chmod +x "$out/bin/ultraschall"
     cp -r * "$out"
-    ${gnutar}/bin/tar xf themes/ultraschall-theme.tar -C "$out/themes/" && rm "$out/themes/ultraschall-theme.tar"
+    ${lib.getExe gnutar} xf themes/ultraschall-theme.tar -C "$out/themes/" && rm "$out/themes/ultraschall-theme.tar"
 
     runHook postInstall
   '';
